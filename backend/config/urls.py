@@ -66,6 +66,7 @@ urlpatterns = [
     path("api/v1/", include(router.urls)),
     path("api/v1/hr/", include("apps.hr.urls")),
     path("api/v1/projects/", include("apps.projects.urls")),
+    path("api/v1/crm/", include("apps.crm.urls")),
     path("api/v1/activity-feed/", ActivityFeedView.as_view(), name="activity-feed"),
     path("api/v1/search/", SearchView.as_view(), name="global-search"),
 ]

@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Settings,
   Sun,
+  Target,
   Users,
   X,
 } from "lucide-react";
@@ -25,6 +26,7 @@ import { Button } from "../ui/button";
 
 const navigation = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
+  { to: "/crm", label: "CRM & Sales", icon: Target },
   { to: "/hr", label: "Human resources", icon: Users },
   { to: "/delivery", label: "Delivery", icon: BriefcaseBusiness },
   { to: "/notifications", label: "Notifications", icon: Bell },

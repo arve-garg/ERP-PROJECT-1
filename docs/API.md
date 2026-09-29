@@ -91,3 +91,22 @@ All IDs and foreign keys are integer IDs. Paginated list responses use `{ "count
 Project states: `planned`, `active`, `on_hold`, `completed`, `cancelled`; milestone states: `planned`, `in_progress`, `completed`, `blocked`; sprint states: `planned`, `active`, `completed`, `cancelled`. Priorities: `low`, `medium`, `high`, `urgent`. Time entry states: `draft`, `submitted`, `approved`, `rejected`. Submit and decision actions accept an empty object or `{"decision_note": "..."}` respectively; approve/reject use the latter payload.
 
 Bug severities are `low`, `medium`, `high`, `critical`; statuses are `open`, `triaged`, `in_progress`, `fixed`, `verified`, `closed`, `wont_fix`. Bug status changes use `POST /bugs/{id}/status/` with a `status` field. Task estimates, project budgets, rates, hours, and allocation percentages are decimal values.
+
+## Phase 4 CRM endpoints
+
+All routes in this section are relative to `/api/v1/crm/`.
+
+| Area | Endpoints |
+|---|---|
+| Leads | `/leads/`, `/leads/{id}/qualify/` |
+| Contacts | `/contacts/` |
+| Deals & Pipeline | `/deals/`, `/deals/{id}/stage/`, `/deals/pipeline-summary/` |
+| Activities | `/activities/`, `/activities/{id}/complete/` |
+
+Access to CRM endpoints is restricted to users with `Sales` or `Admin` roles (or superusers).
+
+- **Leads**: Supports filtering by `status`, `source`, and `assigned_to`, and searching across company name, contact person, email, and phone. `POST /leads/{id}/qualify/` updates the lead status to `qualified` and optionally creates an opportunity `Deal` via `{"create_deal": true, "deal_title": "..."}`.
+- **Contacts**: CRUD for customer contact records with search across first name, last name, organization, email, and phone.
+- **Deals**: Sales pipeline tracking. Stage changes use `POST /deals/{id}/stage/` with `{"stage": "qualified|proposal|won|lost", "lost_reason": "...", "probability": 0-100}`. `GET /deals/pipeline-summary/` provides aggregated count and expected value totals per stage.
+- **Activities**: Logs calls, meetings, emails, notes, and tasks linked to leads, contacts, or deals. `POST /activities/{id}/complete/` marks an activity completed with timestamp and actor tracking.
+

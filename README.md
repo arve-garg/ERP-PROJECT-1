@@ -71,6 +71,7 @@ The API is versioned under `/api/v1/`. OpenAPI docs are served at `/api/docs/`; 
 | Search | `GET /search?q=...` |
 | HR | `/hr/departments`, `/hr/designations`, `/hr/employees`, `/hr/emergency-contacts`, `/hr/employee-documents`, `/hr/attendance`, `/hr/leave-types`, `/hr/leave-balances`, `/hr/leave-requests`, `/hr/holidays` |
 | Projects and delivery | `/clients`, `/projects`, `/milestones`, `/tasks`, `/sprints`, `/time-entries`, `/resource-allocations` |
+| CRM and sales | `/crm/leads`, `/crm/contacts`, `/crm/deals`, `/crm/activities` |
 
 The employee/org chart, attendance, leave, and holiday API details are documented in [docs/API.md](docs/API.md). Monthly leave accrual is idempotently run with `python manage.py accrue_leave_balances --year YYYY --month MM` from the backend directory; schedule this command monthly in the deployment environment.
 

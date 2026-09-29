@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.hr.apps.HrConfig",
     "apps.projects.apps.ProjectsConfig",
+    "apps.crm.apps.CrmConfig",
 ]
 
 MIDDLEWARE = [

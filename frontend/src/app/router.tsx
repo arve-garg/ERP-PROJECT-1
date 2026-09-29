@@ -13,6 +13,7 @@ import { ResetPasswordPage } from "../features/auth/reset-password-page";
 import { DashboardPage } from "../features/dashboard/dashboard-page";
 import { HrPage } from "../features/hr/hr-page";
 import { ProjectsPage } from "../features/projects/projects-page";
+import { CrmPage } from "../features/crm/crm-page";
 
 function RequireAuth() {
   const { user, accessToken } = useAuth();
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { path: "/", element: <DashboardPage /> },
+          { path: "/crm", element: <CrmPage /> },
           { path: "/hr", element: <HrPage /> },
           { path: "/delivery", element: <ProjectsPage /> },
           { path: "/notifications", element: <NotificationsPage /> },

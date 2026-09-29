@@ -12,7 +12,7 @@ Tracking implementation progress across DevERP phases and delivery slices.
 ## Remaining Slices (Phases 4-8)
 
 ### Phase 4: CRM & Finance
-- [ ] **Slice 4a: CRM** - Leads, contacts, deals pipeline as Kanban (new, qualified, proposal, won, lost), CRM activities/notes, follow-up dates with due/overdue indicators.
+- [x] **Slice 4a: CRM** - Leads, contacts, deals pipeline as Kanban (new, qualified, proposal, won, lost), CRM activities/notes, follow-up dates with due/overdue indicators.
 - [ ] **Slice 4b: Quotes & Deal Conversion** - Quotes with line items, tax, discounts, PDF generation via WeasyPrint, deal-won conversion into Client + Project.
 - [ ] **Slice 4c: Finance Core & Invoicing from Time** - Finance app setup, project/role billing rates, sequential invoice generation from approved billable un-invoiced time entries or milestones, double-invoicing prevention in atomic transaction.
 - [ ] **Slice 4d: Payments, Credit Notes & Invoice PDF** - Manual payment recording with invoice allocation, credit notes, invoice PDF rendering via WeasyPrint.
