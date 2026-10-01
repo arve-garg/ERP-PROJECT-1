@@ -32,6 +32,15 @@ function RequireApproved() {
   );
 }
 
+function RequireRoles({ roles }: { roles: string[] }) {
+  const { user } = useAuth();
+  return user?.roles.some((role) => roles.includes(role)) ? (
+    <Outlet />
+  ) : (
+    <Navigate to={ROUTE_CONTRACT.DASHBOARD} replace />
+  );
+}
+
 function RequireAdmin() {
   const { user } = useAuth();
   return user?.roles.includes("Admin") ? (
@@ -60,11 +69,22 @@ export const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { path: ROUTE_CONTRACT.DASHBOARD, element: <DashboardPage /> },
-              { path: ROUTE_CONTRACT.CRM, element: <CrmPage /> },
-              { path: ROUTE_CONTRACT.HR, element: <HrPage /> },
-              { path: ROUTE_CONTRACT.DELIVERY, element: <ProjectsPage /> },
+              {
+                element: <RequireRoles roles={["Admin", "Manager", "Employee", "Client"]} />,
+                children: [
+                  { path: ROUTE_CONTRACT.CRM, element: <CrmPage /> },
+                  { path: ROUTE_CONTRACT.DELIVERY, element: <ProjectsPage /> },
+                ],
+              },
+              {
+                element: <RequireRoles roles={["Admin", "HR"]} />,
+                children: [{ path: ROUTE_CONTRACT.HR, element: <HrPage /> }],
+              },
               { path: ROUTE_CONTRACT.NOTIFICATIONS, element: <NotificationsPage /> },
-              { path: ROUTE_CONTRACT.ACTIVITY, element: <ActivityPage /> },
+              {
+                element: <RequireRoles roles={["Admin", "HR", "Manager"]} />,
+                children: [{ path: ROUTE_CONTRACT.ACTIVITY, element: <ActivityPage /> }],
+              },
               { path: ROUTE_CONTRACT.SECURITY, element: <SecurityPage /> },
               {
                 element: <RequireAdmin />,
