@@ -18,6 +18,11 @@ interface UserRecord {
   is_active: boolean;
   roles: string[];
   date_joined: string;
+  approval_status: "pending" | "approved" | "rejected";
+  employee_number?: string | null;
+  department_name?: string | null;
+  designation_title?: string | null;
+  phone?: string | null;
 }
 
 interface RoleRecord {
@@ -50,6 +55,26 @@ export function UsersPage() {
         {},
         accessToken,
       ),
+  });
+  const pendingUsers = useQuery({
+    queryKey: ["users", "pending"],
+    queryFn: () =>
+      apiRequest<Paginated<UserRecord>>(
+        "/users/?page_size=100&approval_status=pending",
+        {},
+        accessToken,
+      ),
+  });
+  const approval = useMutation({
+    mutationFn: ({ userId, action }: { userId: number; action: "approve" | "reject" }) =>
+      apiRequest<UserRecord>(
+        `/users/${userId}/${action}/`,
+        { method: "POST" },
+        accessToken,
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
   });
   const roles = useQuery({
     queryKey: ["roles"],
@@ -181,6 +206,42 @@ export function UsersPage() {
           </Button>
         </div>
       </div>
+      <Card className="list-card">
+        <div className="section-heading">
+          <div>
+            <h2>Pending access requests</h2>
+            <p className="muted-text">Review new employee registrations before activating workspace access.</p>
+          </div>
+          <span className="result-count">{pendingUsers.data?.count ?? 0} pending</span>
+        </div>
+        {pendingUsers.isPending && <div className="loading-state">Loading requests…</div>}
+        {pendingUsers.isError && <div className="error-state">Requests could not be loaded.</div>}
+        {pendingUsers.isSuccess && pendingUsers.data.results.length === 0 && (
+          <div className="empty-state"><strong>No pending requests</strong><p>New registrations will appear here.</p></div>
+        )}
+        {pendingUsers.isSuccess && pendingUsers.data.results.length > 0 && (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Actions</th></tr></thead>
+              <tbody>
+                {pendingUsers.data.results.map((pendingUser) => (
+                  <tr key={pendingUser.id}>
+                    <td><strong>{pendingUser.first_name} {pendingUser.last_name}</strong><small>{pendingUser.email} · {pendingUser.employee_number}</small></td>
+                    <td>{pendingUser.department_name || "—"}</td>
+                    <td>{pendingUser.designation_title || "—"}</td>
+                    <td>
+                      <div className="form-actions">
+                        <Button size="sm" disabled={approval.isPending} onClick={() => approval.mutate({ userId: pendingUser.id, action: "approve" })}>Approve</Button>
+                        <Button size="sm" variant="ghost" disabled={approval.isPending} onClick={() => approval.mutate({ userId: pendingUser.id, action: "reject" })}>Reject</Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
       {importError && (
         <p
           className={importUsers.isError ? "form-error" : "success-message"}
