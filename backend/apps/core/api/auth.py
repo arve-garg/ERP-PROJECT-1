@@ -64,6 +64,11 @@ class LoginSerializer(TokenObtainPairSerializer):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "totp_required": user.totp_required,
+            "approval_status": user.approval_status,
+            "employee_number": getattr(getattr(user, "employee_profile", None), "employee_number", None),
+            "department_name": getattr(getattr(getattr(user, "employee_profile", None), "department", None), "name", None),
+            "designation_title": getattr(getattr(getattr(user, "employee_profile", None), "designation", None), "title", None),
+            "phone": getattr(getattr(user, "employee_profile", None), "phone", None),
             "roles": list(user.roles.values_list("name", flat=True))
             + (
                 ["Admin"]
