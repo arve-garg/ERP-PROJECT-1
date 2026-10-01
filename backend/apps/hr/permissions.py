@@ -10,7 +10,12 @@ from apps.hr.models import EmployeeProfile
 
 def has_any_role(user: User, *roles: str) -> bool:
     return bool(
-        user.is_authenticated and (user.is_superuser or user.roles.filter(name__in=roles).exists())
+        user.is_authenticated
+        and (
+            user.is_superuser
+            or getattr(user, "approval_status", None) == "approved"
+        )
+        and (user.is_superuser or user.roles.filter(name__in=roles).exists())
     )
 
 
