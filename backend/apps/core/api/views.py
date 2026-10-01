@@ -63,7 +63,7 @@ class UserViewSet(viewsets.ModelViewSet[User]):
     serializer_class = UserSerializer
     permission_classes = [HasRole]
     required_roles = ("Admin",)
-    filterset_fields = ["is_active", "is_deleted", "roles__name"]
+    filterset_fields = ["is_active", "is_deleted", "approval_status", "roles__name"]
     search_fields = ["email", "first_name", "last_name"]
     ordering_fields = ["email", "date_joined", "first_name", "last_name"]
 
