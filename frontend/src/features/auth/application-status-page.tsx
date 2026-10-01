@@ -4,7 +4,7 @@ import { useAuth } from "../../app/auth-context";
 import { Button } from "../../components/ui/button";
 
 export function ApplicationStatusPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const pending = user?.approval_status === "pending";
   const rejected = user?.approval_status === "rejected";
@@ -51,6 +51,15 @@ export function ApplicationStatusPage() {
           </div>
         )}
 
+        {pending && (
+          <Button type="button" onClick={() => void refreshUser().then(() => {
+            if (sessionStorage.getItem("deverp.user")?.includes('"approval_status":"approved"')) {
+              navigate("/", { replace: true });
+            }
+          })}>
+            Check approval status
+          </Button>
+        )}
         <Button type="button" variant="ghost" onClick={() => void signOut()}>
           <LogOut size={16} /> Sign out
         </Button>
