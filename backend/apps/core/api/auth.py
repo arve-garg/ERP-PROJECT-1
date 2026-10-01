@@ -11,6 +11,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import force_str
+from django.utils.text import slugify
 from django.utils.http import urlsafe_base64_decode
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from drf_spectacular.utils import extend_schema
@@ -285,12 +286,8 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     employee_number = serializers.CharField(max_length=30)
-    department = serializers.PrimaryKeyRelatedField(
-        queryset=Department.objects.filter(is_deleted=False)
-    )
-    designation = serializers.PrimaryKeyRelatedField(
-        queryset=Designation.objects.filter(is_deleted=False, department__is_deleted=False)
-    )
+    department = serializers.CharField(max_length=100)
+    designation = serializers.CharField(max_length=100)
     phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=12)
     password_confirm = serializers.CharField(write_only=True, min_length=12)
@@ -308,12 +305,14 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
         return value
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        attrs["department"] = attrs["department"].strip()
+        attrs["designation"] = attrs["designation"].strip()
         if attrs["password"] != attrs["password_confirm"]:
             raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
-        if attrs["designation"].department_id != attrs["department"].id:
-            raise serializers.ValidationError(
-                {"designation": "The selected designation must belong to the selected department."}
-            )
+        if not attrs["department"]:
+            raise serializers.ValidationError({"department": "Enter your department."})
+        if not attrs["designation"]:
+            raise serializers.ValidationError({"designation": "Enter your designation."})
         try:
             validate_password(attrs["password"])
         except ValidationError as error:
@@ -333,6 +332,31 @@ class RegisterView(GenericAPIView[Any]):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        department_name = data["department"]
+        department = Department.objects.filter(name__iexact=department_name, is_deleted=False).first()
+        if department is None:
+            code_base = slugify(department_name).replace("-", "").upper()[:20] or "DEPT"
+            code = code_base
+            counter = 2
+            while Department.objects.filter(code=code).exists():
+                suffix = str(counter)
+                code = f"{code_base[:20 - len(suffix)]}{suffix}"
+                counter += 1
+            department = Department.objects.create(
+                name=department_name,
+                code=code,
+            )
+        designation_title = data["designation"]
+        designation = Designation.objects.filter(
+            department=department,
+            title__iexact=designation_title,
+            is_deleted=False,
+        ).first()
+        if designation is None:
+            designation = Designation.objects.create(
+                title=designation_title,
+                department=department,
+            )
         user = User.objects.create_user(
             email=data["email"],
             password=data["password"],
@@ -344,8 +368,8 @@ class RegisterView(GenericAPIView[Any]):
         EmployeeProfile.objects.create(
             user=user,
             employee_number=data["employee_number"].strip(),
-            department=data["department"],
-            designation=data["designation"],
+            department=department,
+            designation=designation,
             phone=data.get("phone", "").strip(),
             created_by=user,
             updated_by=user,
@@ -358,7 +382,7 @@ class RegisterView(GenericAPIView[Any]):
                 recipient=admin,
                 category="user_registration",
                 title="New user registration",
-                body=f"{user.get_full_name() or user.email} requested access for {data['department'].name}.",
+                body=f"{user.get_full_name() or user.email} requested access for {department.name}.",
                 target_url="/access",
             )
         return Response(
