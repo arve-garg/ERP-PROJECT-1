@@ -41,11 +41,21 @@ class UserSerializer(serializers.ModelSerializer[User]):
             "is_staff",
             "is_deleted",
             "totp_required",
+            "approval_status",
             "roles",
             "password",
             "date_joined",
+            "employee_number",
+            "department_name",
+            "designation_title",
+            "phone",
         ]
-        read_only_fields = ["id", "is_staff", "is_deleted", "date_joined", "totp_required"]
+        read_only_fields = ["id", "is_staff", "is_deleted", "date_joined", "totp_required", "approval_status", "employee_number", "department_name", "designation_title", "phone"]
+
+    employee_number = serializers.CharField(source="employee_profile.employee_number", read_only=True, allow_null=True)
+    department_name = serializers.CharField(source="employee_profile.department.name", read_only=True, allow_null=True)
+    designation_title = serializers.CharField(source="employee_profile.designation.title", read_only=True, allow_null=True)
+    phone = serializers.CharField(source="employee_profile.phone", read_only=True, allow_null=True)
 
     def validate_password(self, value: str) -> str:
         try:
@@ -83,6 +93,11 @@ class UserSerializer(serializers.ModelSerializer[User]):
 
 
 class UserProfileSerializer(serializers.ModelSerializer[User]):
+    employee_number = serializers.CharField(source="employee_profile.employee_number", read_only=True, allow_null=True)
+    department_name = serializers.CharField(source="employee_profile.department.name", read_only=True, allow_null=True)
+    designation_title = serializers.CharField(source="employee_profile.designation.title", read_only=True, allow_null=True)
+    phone = serializers.CharField(source="employee_profile.phone", read_only=True, allow_null=True)
+
     roles: serializers.SlugRelatedField[Any] = serializers.SlugRelatedField(
         many=True, slug_field="name", read_only=True
     )
