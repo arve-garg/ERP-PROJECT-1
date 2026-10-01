@@ -11,6 +11,7 @@ export const ROUTE_CONTRACT = {
   NOTIFICATIONS: "/notifications",
   RESET_PASSWORD: "/reset-password",
   REGISTER: "/register",
+  APPLICATION_STATUS: "/application-status",
   SECURITY: "/security",
   SETTINGS: "/settings",
   NOT_FOUND: "*",
