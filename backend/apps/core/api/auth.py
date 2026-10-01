@@ -333,7 +333,10 @@ class RegisterView(GenericAPIView[Any]):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         department_name = data["department"]
-        department = Department.objects.filter(name__iexact=department_name, is_deleted=False).first()
+        department = Department.objects.filter(name__iexact=department_name).first()
+        if department is not None and department.is_deleted:
+            department.is_deleted = False
+            department.save(update_fields=["is_deleted", "updated_at"])
         if department is None:
             code_base = slugify(department_name).replace("-", "").upper()[:20] or "DEPT"
             code = code_base
@@ -350,8 +353,10 @@ class RegisterView(GenericAPIView[Any]):
         designation = Designation.objects.filter(
             department=department,
             title__iexact=designation_title,
-            is_deleted=False,
         ).first()
+        if designation is not None and designation.is_deleted:
+            designation.is_deleted = False
+            designation.save(update_fields=["is_deleted", "updated_at"])
         if designation is None:
             designation = Designation.objects.create(
                 title=designation_title,
