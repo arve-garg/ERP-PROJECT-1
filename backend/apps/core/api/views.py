@@ -34,6 +34,7 @@ from apps.core.models import (
     User,
 )
 from apps.core.permissions import AdminOrReadOnly, HasRole
+from apps.hr.models import EmployeeProfile
 from apps.core.serializers import (
     ActivityFeedSerializer,
     AuditLogSerializer,
@@ -190,6 +191,49 @@ class UserViewSet(viewsets.ModelViewSet[User]):
             for serializer in validated:
                 serializer.save()
         return Response({"created": len(validated)}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request: Request, pk: str | None = None) -> Response:
+        user = self.get_object()
+        if user.approval_status == User.ApprovalStatus.APPROVED:
+            return Response({"detail": "This user is already approved."})
+        if not hasattr(user, "employee_profile"):
+            raise ValidationError({"detail": "This user has no employee application."})
+        employee_role = Role.objects.filter(name="Employee", is_deleted=False).first()
+        if employee_role is None:
+            raise ValidationError({"detail": "Create the Employee role before approving users."})
+        user.approval_status = User.ApprovalStatus.APPROVED
+        user.is_active = True
+        user.roles.add(employee_role)
+        user.updated_by = request.user
+        user.save(update_fields=["approval_status", "is_active", "updated_by", "updated_at"])
+        Notification.objects.create(
+            recipient=user,
+            category="user_registration",
+            title="Application approved",
+            body="Your DevERP account has been approved. You can now start working in your workspace.",
+            target_url="/",
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        return Response(self.get_serializer(user).data)
+
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request: Request, pk: str | None = None) -> Response:
+        user = self.get_object()
+        user.approval_status = User.ApprovalStatus.REJECTED
+        user.updated_by = request.user
+        user.save(update_fields=["approval_status", "updated_by", "updated_at"])
+        Notification.objects.create(
+            recipient=user,
+            category="user_registration",
+            title="Application not approved",
+            body="Your DevERP access request was not approved. Please contact your administrator.",
+            target_url="/",
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        return Response(self.get_serializer(user).data)
 
     @action(detail=True, methods=["put"], url_path="roles")
     def assign_roles(self, request: Request, pk: str | None = None) -> Response:
