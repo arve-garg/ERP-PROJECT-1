@@ -26,12 +26,12 @@ import { GlobalSearch } from "./global-search";
 import { Button } from "../ui/button";
 
 const navigation = [
-  { to: ROUTE_CONTRACT.DASHBOARD, label: "Overview", icon: LayoutDashboard, end: true },
-  { to: ROUTE_CONTRACT.CRM, label: "CRM & Sales", icon: Target },
-  { to: ROUTE_CONTRACT.HR, label: "Human resources", icon: Users },
-  { to: ROUTE_CONTRACT.DELIVERY, label: "Delivery", icon: BriefcaseBusiness },
-  { to: ROUTE_CONTRACT.NOTIFICATIONS, label: "Notifications", icon: Bell },
-  { to: ROUTE_CONTRACT.ACTIVITY, label: "Activity", icon: ClipboardList },
+  { to: ROUTE_CONTRACT.DASHBOARD, label: "Overview", icon: LayoutDashboard, end: true, roles: ["Admin", "HR", "Manager", "Employee", "Client"] },
+  { to: ROUTE_CONTRACT.CRM, label: "CRM & Sales", icon: Target, roles: ["Admin", "Manager", "Employee", "Client"] },
+  { to: ROUTE_CONTRACT.HR, label: "Human resources", icon: Users, roles: ["Admin", "HR"] },
+  { to: ROUTE_CONTRACT.DELIVERY, label: "Delivery", icon: BriefcaseBusiness, roles: ["Admin", "Manager", "Employee", "Client"] },
+  { to: ROUTE_CONTRACT.NOTIFICATIONS, label: "Notifications", icon: Bell, roles: ["Admin", "HR", "Manager", "Employee", "Client"] },
+  { to: ROUTE_CONTRACT.ACTIVITY, label: "Activity", icon: ClipboardList, roles: ["Admin", "HR", "Manager"] },
 ];
 
 export function AppShell() {
@@ -96,7 +96,7 @@ export function AppShell() {
         </div>
         {!collapsed && <p className="nav-section-title">WORKSPACE</p>}
         <nav className="primary-nav" aria-label="Main navigation">
-          {navigation.map(({ to, label, icon: Icon, end }) => (
+          {navigation.filter(({ roles }) => user?.roles.some((role) => roles.includes(role))).map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
