@@ -11,6 +11,7 @@ import { ForgotPasswordPage } from "../features/auth/forgot-password-page";
 import { RegisterPage } from "../features/auth/register-page";
 import { LoginPage } from "../features/auth/login-page";
 import { ResetPasswordPage } from "../features/auth/reset-password-page";
+import { ApplicationStatusPage } from "../features/auth/application-status-page";
 import { DashboardPage } from "../features/dashboard/dashboard-page";
 import { HrPage } from "../features/hr/hr-page";
 import { ProjectsPage } from "../features/projects/projects-page";
@@ -20,6 +21,15 @@ import { ROUTE_CONTRACT } from "./route-contract";
 function RequireAuth() {
   const { user, accessToken } = useAuth();
   return user && accessToken ? <Outlet /> : <Navigate to={ROUTE_CONTRACT.LOGIN} replace />;
+}
+
+function RequireApproved() {
+  const { user } = useAuth();
+  return user?.approval_status === "approved" || user?.roles.includes("Admin") ? (
+    <Outlet />
+  ) : (
+    <Navigate to={ROUTE_CONTRACT.APPLICATION_STATUS} replace />
+  );
 }
 
 function RequireAdmin() {
@@ -39,8 +49,12 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
+      { path: ROUTE_CONTRACT.APPLICATION_STATUS, element: <ApplicationStatusPage /> },
       {
-        element: <AppShell />,
+        element: <RequireApproved />,
+        children: [
+          {
+            element: <AppShell />,
         children: [
           { path: ROUTE_CONTRACT.DASHBOARD, element: <DashboardPage /> },
           { path: ROUTE_CONTRACT.CRM, element: <CrmPage /> },
