@@ -9,6 +9,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -24,7 +25,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.core.models import User
+from apps.core.models import Notification, User
+from apps.hr.models import Department, Designation, EmployeeProfile
 
 
 class LoginThrottle(AnonRateThrottle):
@@ -276,8 +278,22 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     email = serializers.EmailField()
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    employee_number = serializers.CharField(max_length=30)
+    department = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.filter(is_deleted=False)
+    )
+    designation = serializers.PrimaryKeyRelatedField(
+        queryset=Designation.objects.filter(is_deleted=False, department__is_deleted=False)
+    )
+    phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=12)
     password_confirm = serializers.CharField(write_only=True, min_length=12)
+
+    def validate_employee_number(self, value: str) -> str:
+        value = value.strip()
+        if EmployeeProfile.objects.filter(employee_number__iexact=value).exists():
+            raise serializers.ValidationError("An employee code with this value already exists.")
+        return value
 
     def validate_email(self, value: str) -> str:
         value = value.strip().lower()
@@ -288,6 +304,10 @@ class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         if attrs["password"] != attrs["password_confirm"]:
             raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
+        if attrs["designation"].department_id != attrs["department"].id:
+            raise serializers.ValidationError(
+                {"designation": "The selected designation must belong to the selected department."}
+            )
         try:
             validate_password(attrs["password"])
         except ValidationError as error:
@@ -302,18 +322,56 @@ class RegisterView(GenericAPIView[Any]):
     serializer_class = RegisterSerializer
 
     @extend_schema(responses={201: MessageSerializer})
+    @transaction.atomic
     def post(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        User.objects.create_user(
+        user = User.objects.create_user(
             email=data["email"],
             password=data["password"],
             first_name=data["first_name"].strip(),
             last_name=data.get("last_name", "").strip(),
             is_active=True,
+            approval_status=User.ApprovalStatus.PENDING,
         )
+        EmployeeProfile.objects.create(
+            user=user,
+            employee_number=data["employee_number"].strip(),
+            department=data["department"],
+            designation=data["designation"],
+            phone=data.get("phone", "").strip(),
+            created_by=user,
+            updated_by=user,
+        )
+        admins = User.objects.filter(is_superuser=True, is_active=True, is_deleted=False).union(
+            User.objects.filter(roles__name="Admin", is_active=True, is_deleted=False)
+        )
+        for admin in admins:
+            Notification.objects.create(
+                recipient=admin,
+                category="user_registration",
+                title="New user registration",
+                body=f"{user.get_full_name() or user.email} requested access for {data['department'].name}.",
+                target_url="/access",
+            )
         return Response(
-            {"detail": "Account created successfully. You can now sign in."},
+            {"detail": "Application submitted successfully. You can sign in to check your approval status."},
             status=status.HTTP_201_CREATED,
         )
+
+
+class RegistrationOptionsView(GenericAPIView[Any]):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request: Request) -> Response:
+        departments = list(
+            Department.objects.filter(is_deleted=False).values("id", "name", "code").order_by("name")
+        )
+        designations = list(
+            Designation.objects.filter(is_deleted=False, department__is_deleted=False)
+            .values("id", "title", "department_id")
+            .order_by("title")
+        )
+        return Response({"departments": departments, "designations": designations})
