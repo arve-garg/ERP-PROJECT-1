@@ -5,6 +5,11 @@ export interface AuthUser {
   last_name: string;
   roles: string[];
   totp_required: boolean;
+  approval_status: "pending" | "approved" | "rejected";
+  employee_number?: string | null;
+  department_name?: string | null;
+  designation_title?: string | null;
+  phone?: string | null;
 }
 
 export interface LoginResponse {
