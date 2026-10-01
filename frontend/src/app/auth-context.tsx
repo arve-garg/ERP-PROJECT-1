@@ -14,6 +14,7 @@ interface AuthContextValue {
   accessToken: string | null;
   login: (email: string, password: string, otpCode?: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -61,6 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.setItem("deverp.user", JSON.stringify(response.user));
         setAccessToken(response.access);
         setUser(response.user);
+      },
+      async refreshUser() {
+        const refreshed = await apiRequest<AuthUser>("/users/me/", {}, accessToken);
+        sessionStorage.setItem("deverp.user", JSON.stringify(refreshed));
+        setUser(refreshed);
       },
       async logout() {
         const refresh = sessionStorage.getItem("deverp.refresh");
