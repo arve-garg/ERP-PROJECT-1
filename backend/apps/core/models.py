@@ -91,6 +91,14 @@ class User(AbstractUser):
     )
     is_deleted = models.BooleanField(default=False, db_index=True)
     totp_required = models.BooleanField(default=False)
+    class ApprovalStatus(models.TextChoices):
+        PENDING = "pending", "Pending approval"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    approval_status = models.CharField(
+        max_length=20, choices=ApprovalStatus.choices, default=ApprovalStatus.APPROVED, db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
