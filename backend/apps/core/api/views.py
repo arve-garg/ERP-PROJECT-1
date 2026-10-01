@@ -75,7 +75,7 @@ class UserViewSet(viewsets.ModelViewSet[User]):
     def get_queryset(self) -> QuerySet[User, User]:
         if getattr(self, "action", None) == "me":
             return User.objects.filter(pk=cast(User, self.request.user).pk)
-        return User.objects.filter(is_deleted=False).prefetch_related("roles")
+        return User.objects.filter(is_deleted=False).select_related("employee_profile__department", "employee_profile__designation").prefetch_related("roles")
 
     @action(
         detail=False, methods=["get", "patch"], permission_classes=[IsAuthenticated], url_path="me"
