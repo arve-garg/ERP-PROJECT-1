@@ -396,6 +396,7 @@ export function UsersPage() {
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
+                  <th>Department</th>
                   <th>Roles</th>
                   <th>Status</th>
                 </tr>
@@ -484,9 +485,15 @@ function UserRow({
       </td>
       <td>
         <span
-          className={`status-chip ${user.is_active ? "status-active" : "status-inactive"}`}
+          className={`status-chip ${user.approval_status === "approved" && user.is_active ? "status-active" : "status-inactive"}`}
         >
-          {user.is_active ? "Active" : "Inactive"}
+          {user.approval_status === "pending"
+            ? "Pending approval"
+            : user.approval_status === "rejected"
+              ? "Rejected"
+              : user.is_active
+                ? "Active"
+                : "Inactive"}
         </span>
       </td>
     </tr>
