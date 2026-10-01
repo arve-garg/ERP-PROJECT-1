@@ -52,6 +52,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         user = self.user
         if user is None:
             raise serializers.ValidationError("The supplied credentials are invalid.")
+        profile = EmployeeProfile.objects.filter(user=user).select_related("department", "designation").first()
         if user.totp_required:
             devices = TOTPDevice.objects.filter(user=user, confirmed=True)
             if not otp_code or not any(device.verify_token(otp_code) for device in devices):
@@ -65,10 +66,10 @@ class LoginSerializer(TokenObtainPairSerializer):
             "last_name": user.last_name,
             "totp_required": user.totp_required,
             "approval_status": user.approval_status,
-            "employee_number": getattr(getattr(user, "employee_profile", None), "employee_number", None),
-            "department_name": getattr(getattr(getattr(user, "employee_profile", None), "department", None), "name", None),
-            "designation_title": getattr(getattr(getattr(user, "employee_profile", None), "designation", None), "title", None),
-            "phone": getattr(getattr(user, "employee_profile", None), "phone", None),
+            "employee_number": profile.employee_number if profile else None,
+            "department_name": profile.department.name if profile else None,
+            "designation_title": profile.designation.title if profile else None,
+            "phone": profile.phone if profile else None,
             "roles": list(user.roles.values_list("name", flat=True))
             + (
                 ["Admin"]
