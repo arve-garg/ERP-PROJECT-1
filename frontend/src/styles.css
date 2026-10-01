@@ -2200,3 +2200,34 @@ button {
     animation-duration: 0.01ms !important;
   }
 }
+
+
+/* Native select controls */
+.login-card select,
+.form-field select,
+.hr-employee-form select,
+.hr-leave-form select,
+.data-table td select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 36px 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: 0;
+  color: var(--text);
+  background-color: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  appearance: auto;
+}
+.login-card select:focus,
+.form-field select:focus,
+.hr-employee-form select:focus,
+.hr-leave-form select:focus {
+  border-color: #7795ef;
+  box-shadow: 0 0 0 3px rgb(83 119 224 / 13%);
+}
+.login-card select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
