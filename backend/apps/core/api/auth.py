@@ -266,3 +266,54 @@ class TOTPDisableView(GenericAPIView[Any]):
         user.totp_required = False
         user.save(update_fields=["totp_required"])
         return Response({"detail": "Two-factor authentication disabled."})
+
+
+class RegisterThrottle(AnonRateThrottle):
+    scope = "register"
+
+
+class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, min_length=12)
+    password_confirm = serializers.CharField(write_only=True, min_length=12)
+
+    def validate_email(self, value: str) -> str:
+        value = value.strip().lower()
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return value
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
+        try:
+            validate_password(attrs["password"])
+        except ValidationError as error:
+            raise serializers.ValidationError({"password": list(error.messages)}) from error
+        return attrs
+
+
+class RegisterView(GenericAPIView[Any]):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [RegisterThrottle]
+    serializer_class = RegisterSerializer
+
+    @extend_schema(responses={201: MessageSerializer})
+    def post(self, request: Request) -> Response:
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        User.objects.create_user(
+            email=data["email"],
+            password=data["password"],
+            first_name=data["first_name"].strip(),
+            last_name=data.get("last_name", "").strip(),
+            is_active=True,
+        )
+        return Response(
+            {"detail": "Account created successfully. You can now sign in."},
+            status=status.HTTP_201_CREATED,
+        )
