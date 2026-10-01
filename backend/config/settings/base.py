@@ -151,6 +151,7 @@ REST_FRAMEWORK = {
         "auth": "5/minute",
         "password_reset": "3/hour",
         "two_factor": "10/minute",
+        "register": "5/minute",
     },
 }
 SIMPLE_JWT = {
