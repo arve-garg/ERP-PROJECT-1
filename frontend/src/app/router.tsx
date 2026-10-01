@@ -49,26 +49,31 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
-      { path: ROUTE_CONTRACT.APPLICATION_STATUS, element: <ApplicationStatusPage /> },
+      {
+        path: ROUTE_CONTRACT.APPLICATION_STATUS,
+        element: <ApplicationStatusPage />,
+      },
       {
         element: <RequireApproved />,
         children: [
           {
             element: <AppShell />,
-        children: [
-          { path: ROUTE_CONTRACT.DASHBOARD, element: <DashboardPage /> },
-          { path: ROUTE_CONTRACT.CRM, element: <CrmPage /> },
-          { path: ROUTE_CONTRACT.HR, element: <HrPage /> },
-          { path: ROUTE_CONTRACT.DELIVERY, element: <ProjectsPage /> },
-          { path: ROUTE_CONTRACT.NOTIFICATIONS, element: <NotificationsPage /> },
-          { path: ROUTE_CONTRACT.ACTIVITY, element: <ActivityPage /> },
-          { path: ROUTE_CONTRACT.SECURITY, element: <SecurityPage /> },
-          {
-            element: <RequireAdmin />,
             children: [
-              { path: ROUTE_CONTRACT.SETTINGS, element: <SettingsPage /> },
-              { path: ROUTE_CONTRACT.AUDIT_LOG, element: <AuditPage /> },
-              { path: ROUTE_CONTRACT.ACCESS, element: <UsersPage /> },
+              { path: ROUTE_CONTRACT.DASHBOARD, element: <DashboardPage /> },
+              { path: ROUTE_CONTRACT.CRM, element: <CrmPage /> },
+              { path: ROUTE_CONTRACT.HR, element: <HrPage /> },
+              { path: ROUTE_CONTRACT.DELIVERY, element: <ProjectsPage /> },
+              { path: ROUTE_CONTRACT.NOTIFICATIONS, element: <NotificationsPage /> },
+              { path: ROUTE_CONTRACT.ACTIVITY, element: <ActivityPage /> },
+              { path: ROUTE_CONTRACT.SECURITY, element: <SecurityPage /> },
+              {
+                element: <RequireAdmin />,
+                children: [
+                  { path: ROUTE_CONTRACT.SETTINGS, element: <SettingsPage /> },
+                  { path: ROUTE_CONTRACT.AUDIT_LOG, element: <AuditPage /> },
+                  { path: ROUTE_CONTRACT.ACCESS, element: <UsersPage /> },
+                ],
+              },
             ],
           },
         ],
