@@ -111,9 +111,17 @@ class UserProfileSerializer(serializers.ModelSerializer[User]):
             "last_name",
             "roles",
             "totp_required",
+            "approval_status",
+            "employee_number",
+            "department_name",
+            "designation_title",
+            "phone",
             "date_joined",
         ]
-        read_only_fields = ["id", "email", "roles", "totp_required", "date_joined"]
+        read_only_fields = [
+            "id", "email", "roles", "totp_required", "approval_status",
+            "employee_number", "department_name", "designation_title", "phone", "date_joined"
+        ]
 
 
 class NotificationSerializer(serializers.ModelSerializer[Notification]):
