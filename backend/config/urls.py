@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.core.api.auth import (
     LoginView,
     RegisterView,
+    RegistrationOptionsView,
     LogoutView,
     PasswordResetConfirmView,
     PasswordResetView,
@@ -52,6 +53,7 @@ urlpatterns = [
     ),
     path("api/v1/auth/login/", LoginView.as_view(), name="token_obtain_pair"),
     path("api/v1/auth/register/", RegisterView.as_view(), name="register"),
+    path("api/v1/auth/registration-options/", RegistrationOptionsView.as_view(), name="registration_options"),
     path("api/v1/auth/logout/", LogoutView.as_view(), name="token_blacklist"),
     path("api/v1/auth/password/reset/", PasswordResetView.as_view(), name="password_reset"),
     path(
