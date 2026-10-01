@@ -111,6 +111,8 @@ export function LoginPage() {
         </form>
         <div className="login-foot">
           <Link to="/forgot-password">Forgot password?</Link>
+          <span> · </span>
+          <Link to="/register">Create account</Link>
         </div>
       </section>
       <p className="login-caption">Secure access to your company workspace</p>
