@@ -198,9 +198,18 @@ class UserViewSet(viewsets.ModelViewSet[User]):
             return Response({"detail": "This user is already approved."})
         if not hasattr(user, "employee_profile"):
             raise ValidationError({"detail": "This user has no employee application."})
-        employee_role = Role.objects.filter(name="Employee", is_deleted=False).first()
+        employee_role = Role.objects.filter(name="Employee").first()
         if employee_role is None:
-            raise ValidationError({"detail": "Create the Employee role before approving users."})
+            employee_role = Role.objects.create(
+                name="Employee",
+                description="Standard approved employee workspace access.",
+                created_by=request.user,
+                updated_by=request.user,
+            )
+        elif employee_role.is_deleted:
+            employee_role.is_deleted = False
+            employee_role.updated_by = request.user
+            employee_role.save(update_fields=["is_deleted", "updated_by", "updated_at"])
         user.approval_status = User.ApprovalStatus.APPROVED
         user.is_active = True
         user.roles.add(employee_role)
