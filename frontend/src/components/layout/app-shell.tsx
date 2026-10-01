@@ -20,17 +20,18 @@ import {
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/auth-context";
+import { ROUTE_CONTRACT } from "../../app/route-contract";
 import { useTheme } from "../../app/theme-context";
 import { GlobalSearch } from "./global-search";
 import { Button } from "../ui/button";
 
 const navigation = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/crm", label: "CRM & Sales", icon: Target },
-  { to: "/hr", label: "Human resources", icon: Users },
-  { to: "/delivery", label: "Delivery", icon: BriefcaseBusiness },
-  { to: "/notifications", label: "Notifications", icon: Bell },
-  { to: "/activity", label: "Activity", icon: ClipboardList },
+  { to: ROUTE_CONTRACT.DASHBOARD, label: "Overview", icon: LayoutDashboard, end: true },
+  { to: ROUTE_CONTRACT.CRM, label: "CRM & Sales", icon: Target },
+  { to: ROUTE_CONTRACT.HR, label: "Human resources", icon: Users },
+  { to: ROUTE_CONTRACT.DELIVERY, label: "Delivery", icon: BriefcaseBusiness },
+  { to: ROUTE_CONTRACT.NOTIFICATIONS, label: "Notifications", icon: Bell },
+  { to: ROUTE_CONTRACT.ACTIVITY, label: "Activity", icon: ClipboardList },
 ];
 
 export function AppShell() {
@@ -43,9 +44,9 @@ export function AppShell() {
   async function signOut() {
     try {
       await logout();
-      navigate("/login", { replace: true });
+      navigate(ROUTE_CONTRACT.LOGIN, { replace: true });
     } catch {
-      navigate("/login", {
+      navigate(ROUTE_CONTRACT.LOGIN, {
         replace: true,
         state: {
           message:
@@ -113,7 +114,7 @@ export function AppShell() {
           {user?.roles.includes("Admin") && (
             <>
               <NavLink
-                to="/users"
+                to={ROUTE_CONTRACT.ACCESS}
                 title={collapsed ? "Users and roles" : undefined}
                 className={({ isActive }) =>
                   `nav-link ${isActive ? "nav-link-active" : ""}`
@@ -124,7 +125,7 @@ export function AppShell() {
                 {!collapsed && <span>Users & roles</span>}
               </NavLink>
               <NavLink
-                to="/audit-log"
+                to={ROUTE_CONTRACT.AUDIT_LOG}
                 title={collapsed ? "Audit log" : undefined}
                 className={({ isActive }) =>
                   `nav-link ${isActive ? "nav-link-active" : ""}`
@@ -135,7 +136,7 @@ export function AppShell() {
                 {!collapsed && <span>Audit log</span>}
               </NavLink>
               <NavLink
-                to="/settings"
+                to={ROUTE_CONTRACT.SETTINGS}
                 title={collapsed ? "Company settings" : undefined}
                 className={({ isActive }) =>
                   `nav-link ${isActive ? "nav-link-active" : ""}`
@@ -148,7 +149,7 @@ export function AppShell() {
             </>
           )}
           <NavLink
-            to="/security"
+            to={ROUTE_CONTRACT.SECURITY}
             title={collapsed ? "Sign-in security" : undefined}
             className={({ isActive }) =>
               `nav-link ${isActive ? "nav-link-active" : ""}`

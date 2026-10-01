@@ -17,7 +17,7 @@ The first run applies database migrations automatically. To stop, press Ctrl+C; 
 
 ## Run locally without Docker
 
-Requires Python 3.12+ and Node.js 20+. The root `.env` is loaded for local Django development; SQLite is used when `DATABASE_URL` is blank.
+Requires Python 3.12+ and Node.js 20+. The root `.env` is loaded for local Django development; SQLite is used when both `DATABASE_URL` and `POSTGRES_HOST` are blank.
 
 ```powershell
 Copy-Item .env.example .env
@@ -42,7 +42,7 @@ The development UI is at <http://localhost:5173>, and Vite proxies API requests 
 
 ## Configuration
 
-All runtime configuration is via environment variables; see [`.env.example`](.env.example). The sample secret and database password are for local development only: replace both with unique values before deploying, and never commit `.env`. For local Docker over HTTP the sample disables HTTPS redirects and secure-only cookies; set `DJANGO_SECURE_SSL_REDIRECT=true` and `DJANGO_SECURE_COOKIES=true` behind HTTPS in production. Debug mode defaults off, the email backend is the console in development and SMTP when configured in production, and currency/time zone are configurable.
+All runtime configuration is via environment variables; see [`.env.example`](.env.example). Docker supplies PostgreSQL through `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, and `POSTGRES_PORT`; a non-empty `DATABASE_URL` takes precedence for deployments that provide one. The sample secret and database password are for local development only: replace both with unique values before deploying, and never commit `.env`. For local Docker over HTTP the sample disables HTTPS redirects and secure-only cookies; set `DJANGO_SECURE_SSL_REDIRECT=true` and `DJANGO_SECURE_COOKIES=true` behind HTTPS in production. Debug mode defaults off, the email backend is the console in development and SMTP when configured in production, and currency/time zone are configurable.
 
 ## Architecture
 
@@ -73,13 +73,21 @@ The API is versioned under `/api/v1/`. OpenAPI docs are served at `/api/docs/`; 
 | Projects and delivery | `/clients`, `/projects`, `/milestones`, `/tasks`, `/sprints`, `/time-entries`, `/resource-allocations` |
 | CRM and sales | `/crm/leads`, `/crm/contacts`, `/crm/deals`, `/crm/activities` |
 
+| Frontend area | Route |
+|---|---|
+| Dashboard | `/` |
+| CRM, HR, delivery | `/crm`, `/hr`, `/delivery` |
+| Notifications and activity | `/notifications`, `/activity` |
+| Account security | `/security` |
+| Administration | `/settings`, `/access`, `/audit-log` |
+
 The employee/org chart, attendance, leave, and holiday API details are documented in [docs/API.md](docs/API.md). Monthly leave accrual is idempotently run with `python manage.py accrue_leave_balances --year YYYY --month MM` from the backend directory; schedule this command monthly in the deployment environment.
 
 All list endpoints use pagination. Administrative operations require the Admin role; HR management writes require HR or Admin, and employee data is scoped to the employee, direct manager, or HR/Admin.
 
 ## Quality checks
 
-Backend: `cd backend; python -m ruff check .; python -m mypy apps config; python -m pytest --cov=apps --cov-fail-under=80`. Frontend: `cd frontend; npm run lint; npm test; npm run build`. CI runs backend lint/type checks/tests and frontend lint/type checks/tests/build on pushes and pull requests.
+Backend: `cd backend; python -m ruff check .; python -m ruff format --check .; python -m mypy apps config; python -m pytest --cov=apps --cov-fail-under=80`. Frontend: `cd frontend; npm run lint; npx tsc -b; npm test; npm run build`. CI runs backend lint/type checks/tests and frontend lint/type checks/tests/build on pushes and pull requests.
 
 ## License
 

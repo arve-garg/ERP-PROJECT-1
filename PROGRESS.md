@@ -7,6 +7,9 @@ Tracking implementation progress across DevERP phases and delivery slices.
 - [x] **Phase 2: Human Resources (HR)** - Departments, designations, employee profiles, emergency contacts, employee documents, attendance check-in/out & monthly summary, leave types, balances, accrual command (`accrue_leave_balances`), leave requests & approvals, holiday calendar.
 - [x] **Phase 3: Projects & Delivery** - Clients, projects (budget, currencies, manager, status workflow), milestones, tasks (kanban, status transitions, labels, comments, attachments), sprints with backlog & burndown, timesheets (entries, submissions, approvals), resource allocations & capacity, bug tracking, release notes, project documents & wiki, employee hourly cost snapshots.
 
+## Current Slice
+- [x] **S0: Foundation repair and runtime baseline** - Docker/PostgreSQL environment wiring, static frontend serving, code-quality baselines, route contract, and refresh-session reliability.
+
 ---
 
 ## Remaining Slices (Phases 4-8)
@@ -57,4 +60,4 @@ Tracking implementation progress across DevERP phases and delivery slices.
   - `backend/apps/projects/views.py` (~50 KB)
 
 ## Needs Human
-*(None at present. All current dependencies, linters, tests, and builds run green locally on Python 3.14 + Node 20).*
+- Port `8080` is occupied by an existing local process. To run the Compose frontend at its default URL, stop or reconfigure that process, then run `docker compose up --build`. The validated temporary frontend mapping was `http://localhost:8081`.

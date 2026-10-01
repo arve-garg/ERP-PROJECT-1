@@ -1,0 +1,36 @@
+:80 {
+    root * /usr/share/caddy
+    encode zstd gzip
+
+    route {
+        @api path /api/*
+        handle @api {
+            reverse_proxy backend:8000
+        }
+
+        @accounts path /accounts/*
+        handle @accounts {
+            reverse_proxy backend:8000
+        }
+
+        @django_admin path /admin/*
+        handle @django_admin {
+            reverse_proxy backend:8000
+        }
+
+        @static path /static/*
+        handle @static {
+            reverse_proxy backend:8000
+        }
+
+        @media path /media/*
+        handle @media {
+            reverse_proxy backend:8000
+        }
+
+        handle {
+            try_files {path} /index.html
+            file_server
+        }
+    }
+}

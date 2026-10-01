@@ -23,6 +23,7 @@ from apps.core.api.views import (
     ActivityFeedView,
     AuditLogViewSet,
     CompanySettingViewSet,
+    HealthView,
     NotificationViewSet,
     RoleViewSet,
     SavedFilterViewSet,
@@ -41,6 +42,7 @@ router.register("saved-filters", SavedFilterViewSet, basename="saved-filter")
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("api/v1/health/", HealthView.as_view(), name="health"),
     path("api/schema/", SpectacularAPIView.as_view(permission_classes=[AllowAny]), name="schema"),
     path(
         "api/docs/",

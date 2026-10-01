@@ -78,6 +78,18 @@ class CoreApiTests(APITestCase):
         self.assertIn("refresh", response.data)
         self.assertEqual(response.data["user"]["email"], self.employee.email)
 
+    def test_refresh_requires_a_refresh_token_and_returns_access(self) -> None:
+        self.assertEqual(self.client.post("/api/v1/auth/token/refresh/", {}).status_code, 400)
+        refresh = str(RefreshToken.for_user(self.employee))
+        response = self.client.post("/api/v1/auth/token/refresh/", {"refresh": refresh})
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertIn("access", response.data)
+
+    def test_health_endpoint_is_public(self) -> None:
+        response = self.client.get("/api/v1/health/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "ok")
+
     def test_totp_is_enforced_for_login_and_valid_code_succeeds(self) -> None:
         device = TOTPDevice.objects.create(user=self.employee, name="test", confirmed=True)
         self.employee.totp_required = True

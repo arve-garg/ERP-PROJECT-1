@@ -2,13 +2,14 @@
 
 The interactive OpenAPI reference is available at [`/api/docs/`](http://localhost:8080/api/docs/) when DevERP is running. The machine-readable schema is at `/api/schema/`.
 
-All application endpoints are versioned under `/api/v1/`. Protected endpoints require a bearer access token returned by `POST /api/v1/auth/login/`; refresh it with `POST /api/v1/auth/token/refresh/`. List endpoints use page-number pagination and expose filtering, search, or ordering where supported by the resource.
+All application endpoints are versioned under `/api/v1/`. Protected endpoints require a bearer access token returned by `POST /api/v1/auth/login/`; refresh it with `POST /api/v1/auth/token/refresh/`. Refresh requests require a JSON `refresh` field and return `access` plus an optional rotated `refresh` field. List endpoints use page-number pagination and expose filtering, search, or ordering where supported by the resource.
 
 ## Core platform endpoints
 
 | Area | Endpoints |
 |---|---|
 | Authentication | `POST /auth/login/`, `/auth/logout/`, `/auth/token/refresh/`, `/auth/password/reset/`, `/auth/password/reset/confirm/`, `/auth/2fa/setup/`, `/auth/2fa/confirm/`, `/auth/2fa/disable/` |
+| Runtime health | `GET /health/` |
 | Users and roles | `/users/`, `/users/me/`, `/roles/`, `/users/{id}/roles/` |
 | User file exchange | `POST /users/import/`; `GET /users/export/?file_format=csv` or `?file_format=xlsx` |
 | Audit | `GET /audit-logs/` |

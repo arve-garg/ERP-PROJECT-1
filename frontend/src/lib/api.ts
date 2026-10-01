@@ -1,6 +1,14 @@
 import type { ApiError } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+const SESSION_KEYS = ["deverp.access", "deverp.refresh", "deverp.user"];
+
+interface RefreshResponse {
+  access: string;
+  refresh?: string;
+}
+
+let refreshInFlight: Promise<RefreshResponse | null> | null = null;
 
 export class ApiRequestError extends Error {
   constructor(
@@ -11,6 +19,46 @@ export class ApiRequestError extends Error {
     super(message);
     this.name = "ApiRequestError";
   }
+}
+
+function expireSession() {
+  SESSION_KEYS.forEach((key) => sessionStorage.removeItem(key));
+  window.dispatchEvent(new Event("deverp:session-expired"));
+}
+
+export async function refreshAccessToken(): Promise<RefreshResponse | null> {
+  const refresh = sessionStorage.getItem("deverp.refresh");
+  if (!refresh) {
+    expireSession();
+    return null;
+  }
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${API_BASE}/auth/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh }),
+    })
+      .then(async (response) => {
+        const tokens = (await response.json().catch(() => ({}))) as Partial<RefreshResponse>;
+        if (!response.ok || typeof tokens.access !== "string" || !tokens.access) {
+          expireSession();
+          return null;
+        }
+        sessionStorage.setItem("deverp.access", tokens.access);
+        if (typeof tokens.refresh === "string" && tokens.refresh) {
+          sessionStorage.setItem("deverp.refresh", tokens.refresh);
+        }
+        return tokens as RefreshResponse;
+      })
+      .catch(() => {
+        expireSession();
+        return null;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
 }
 
 export async function apiRequest<T>(
@@ -30,34 +78,11 @@ export async function apiRequest<T>(
     return fetch(`${API_BASE}${path}`, { ...options, headers });
   };
   let response = await request(accessToken);
-  if (response.status === 401 && accessToken && !path.includes("/auth/")) {
-    const refresh = sessionStorage.getItem("deverp.refresh");
-    if (refresh) {
-      const refreshResponse = await fetch(`${API_BASE}/auth/token/refresh/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
-      });
-      if (refreshResponse.ok) {
-        const tokens = (await refreshResponse.json()) as {
-          access: string;
-          refresh?: string;
-        };
-        sessionStorage.setItem("deverp.access", tokens.access);
-        if (tokens.refresh)
-          sessionStorage.setItem("deverp.refresh", tokens.refresh);
-        response = await request(tokens.access);
-      } else {
-        sessionStorage.removeItem("deverp.access");
-        sessionStorage.removeItem("deverp.refresh");
-        sessionStorage.removeItem("deverp.user");
-        window.dispatchEvent(new Event("deverp:session-expired"));
-      }
-    } else {
-      sessionStorage.removeItem("deverp.access");
-      sessionStorage.removeItem("deverp.refresh");
-      sessionStorage.removeItem("deverp.user");
-      window.dispatchEvent(new Event("deverp:session-expired"));
+  if (response.status === 401 && accessToken && !path.startsWith("/auth/")) {
+    const tokens = await refreshAccessToken();
+    if (tokens) {
+      response = await request(tokens.access);
+      if (response.status === 401) expireSession();
     }
   }
   if (response.status === 204) return undefined as T;
@@ -94,30 +119,13 @@ export async function apiDownload(
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   if (response.status === 401 && token) {
-    const refresh = sessionStorage.getItem("deverp.refresh");
-    if (!refresh) {
-      window.dispatchEvent(new Event("deverp:session-expired"));
-    } else {
-      let refreshed: { access: string; refresh?: string };
-      try {
-        refreshed = await apiRequest<{ access: string; refresh?: string }>(
-          "/auth/token/refresh/",
-          { method: "POST", body: JSON.stringify({ refresh }) },
-        );
-      } catch (error) {
-        sessionStorage.removeItem("deverp.access");
-        sessionStorage.removeItem("deverp.refresh");
-        sessionStorage.removeItem("deverp.user");
-        window.dispatchEvent(new Event("deverp:session-expired"));
-        throw error;
-      }
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
       token = refreshed.access;
-      sessionStorage.setItem("deverp.access", token);
-      if (refreshed.refresh)
-        sessionStorage.setItem("deverp.refresh", refreshed.refresh);
       response = await fetch(`${API_BASE}${path}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (response.status === 401) expireSession();
     }
   }
   if (!response.ok) {

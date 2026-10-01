@@ -47,6 +47,16 @@ from apps.core.serializers import (
 )
 
 
+class HealthView(GenericAPIView[Any]):
+    """Unauthenticated liveness endpoint for runtime orchestration."""
+
+    permission_classes = []
+    authentication_classes = []
+
+    def get(self, request: Request) -> Response:
+        return Response({"status": "ok", "service": "DevERP API"})
+
+
 class UserViewSet(viewsets.ModelViewSet[User]):
     """Admin user directory, plus the current user's own profile."""
 
