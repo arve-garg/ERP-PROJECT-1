@@ -34,7 +34,6 @@ from apps.core.models import (
     User,
 )
 from apps.core.permissions import AdminOrReadOnly, HasRole
-from apps.hr.models import EmployeeProfile
 from apps.core.serializers import (
     ActivityFeedSerializer,
     AuditLogSerializer,
