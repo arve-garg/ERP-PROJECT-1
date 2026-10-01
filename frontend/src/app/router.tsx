@@ -8,6 +8,7 @@ import { SecurityPage } from "../features/core/security-page";
 import { SettingsPage } from "../features/core/settings-page";
 import { UsersPage } from "../features/core/users-page";
 import { ForgotPasswordPage } from "../features/auth/forgot-password-page";
+import { RegisterPage } from "../features/auth/register-page";
 import { LoginPage } from "../features/auth/login-page";
 import { ResetPasswordPage } from "../features/auth/reset-password-page";
 import { DashboardPage } from "../features/dashboard/dashboard-page";
@@ -32,6 +33,7 @@ function RequireAdmin() {
 
 export const router = createBrowserRouter([
   { path: ROUTE_CONTRACT.LOGIN, element: <LoginPage /> },
+  { path: ROUTE_CONTRACT.REGISTER, element: <RegisterPage /> },
   { path: ROUTE_CONTRACT.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
   { path: ROUTE_CONTRACT.RESET_PASSWORD, element: <ResetPasswordPage /> },
   {
